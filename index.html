@@ -607,14 +607,14 @@ function parseCSV(text){
     return{
       id:Date.now()+idx,
       equipo:get('equipo','nombre del equipo','nombre equipo'),
-      proveedor:get('proveedor'),
-      telefono:get('teléfono','telefono','número de teléfono','numero de telefono'),
-      encargado:get('nombre encargado','encargado','nombre del encargado'),
-      correo:get('correo electrónico','correo electronico','correo','email'),
-      garantia:g(get('garantía','garantia')),
-      frecuencia:get('frecuencia de mantenimiento','frecuencia','frecuencia mantenimiento')||'Mensual',
+      proveedor:get('empresa','proveedor','proveedor del equipo'),
+      telefono:get('telefono','teléfono','número de teléfono','numero de telefono'),
+      encargado:get('nombre del encargado','nombre encargado','encargado'),
+      correo:get('correo electronico','correo electrónico','correo','email'),
+      garantia:g(get('garantia del equipo','garantía del equipo','garantia','garantía')),
+      frecuencia:get('frecuencia','frecuencia de mantenimiento','frecuencia mantenimiento')||'Mensual',
       observaciones:get('observaciones'),
-      capacitacion:c(get('capacitación','capacitacion')),
+      capacitacion:c(get('capacitacion','capacitación')),
     };
   }).filter(r=>r.equipo);
 }
