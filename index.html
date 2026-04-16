@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Estado del Conjunto</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;color:#1e293b;min-height:100vh}
+  .app{max-width:960px;margin:0 auto;padding:24px 16px}
+
+  /* COLORES */
+  :root{
+    --g900:#052e16;--g800:#14532d;--g700:#166534;--g600:#15803d;--g500:#16a34a;
+    --g400:#22c55e;--g100:#dcfce7;--g50:#f0fdf4;
+    --red600:#dc2626;--red100:#fee2e2;--red700:#b91c1c;
+    --amb600:#d97706;--amb100:#fef3c7;
+    --blu600:#2563eb;--blu100:#dbeafe;
+    --sl700:#334155;--sl600:#475569;--sl400:#94a3b8;--sl200:#e2e8f0;--sl100:#f1f5f9;
+  }
+
+  /* BOTONES */
+  button{font-family:inherit;font-size:13px;padding:7px 14px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;transition:background .15s,opacity .15s}
+  button:hover{background:#f8fafc}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .btn-primary{background:var(--g700)!important;color:#fff!important;border-color:var(--g700)!important;font-weight:700}
+  .btn-primary:hover{background:var(--g800)!important}
+  .btn-danger{color:var(--red600)!important;border-color:#fca5a5!important}
+  .btn-danger:hover{background:#fff5f5!important}
+
+  /* INPUTS */
+  input,select,textarea{font-family:inherit;font-size:13px;padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;width:100%;outline:none;background:#fff;color:#1e293b;transition:border-color .15s}
+  input:focus,select:focus,textarea:focus{border-color:var(--g500)}
+  textarea{resize:vertical;min-height:72px}
+
+  /* TABS */
+  .tabs{border-bottom:1px solid #e2e8f0;display:flex;gap:0;margin-bottom:24px}
+  .tab-btn{background:none;border:none;border-bottom:2.5px solid transparent;border-radius:0;padding:10px 18px;font-size:14px;font-weight:400;color:#64748b;cursor:pointer}
+  .tab-btn.active{color:var(--g700);border-bottom-color:var(--g600);font-weight:700}
+  .tab-btn:hover{background:#f8fafc}
+
+  /* CARDS */
+  .card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 20px;margin-bottom:10px}
+  .card-left-green{border-left:4px solid var(--g600)}
+  .card-left-red{border-left:4px solid var(--red600)}
+
+  /* BADGES */
+  .badge{display:inline-block;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;white-space:nowrap}
+  .badge-green{background:var(--g100);color:var(--g800)}
+  .badge-red{background:var(--red100);color:var(--red700)}
+  .badge-blue{background:var(--blu100);color:var(--blu600)}
+  .badge-amber{background:var(--amb100);color:var(--amb600)}
+
+  /* MODAL OVERLAY */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px}
+  .modal{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto}
+
+  /* LOGO BOX */
+  .logo-box{width:88px;height:88px;border-radius:14px;border:2px dashed #94a3b8;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;transition:border-color .2s;flex-shrink:0;background:#f8fafc}
+  .logo-box:hover{border-color:var(--g500);background:var(--g50)}
+  .logo-box img{width:100%;height:100%;object-fit:contain}
+  .logo-box.has-logo{border-color:var(--g500);border-style:solid;background:var(--g50)}
+
+  /* FIELD LABEL */
+  .field-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;margin-bottom:4px;display:block}
+
+  /* SLIDE PREVIEW */
+  .slide-header{background:linear-gradient(135deg,var(--g900) 0%,var(--g700) 60%,var(--g500) 100%);padding:22px 28px;color:#fff;border-radius:16px 16px 0 0}
+  .slide-body{background:#f8fafc;padding:20px 24px}
+  .slide-footer{background:#e2e8f0;padding:10px 24px;border-radius:0 0 16px 16px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+  .slide-wrap{border-radius:16px;overflow:hidden;border:1px solid #e2e8f0}
+  .metric-card{background:#fff;border-radius:12px;padding:14px 16px;flex:1;min-width:0}
+  .equip-card{border-radius:10px;padding:12px 13px}
+
+  /* GRID */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+  .col-span-2{grid-column:1/-1}
+  .equip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:9px}
+  .metrics-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+
+  /* SEARCH ROW */
+  .search-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+  .search-row input{flex:1;min-width:180px}
+
+  /* INFO BOX */
+  .info-box{background:var(--g50);border:1px solid var(--g400);border-radius:12px;padding:14px 18px;margin-bottom:16px}
+  .tip-box{background:#f1f5f9;border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:12px;color:#64748b;display:flex;align-items:center;gap:10px}
+
+  /* PRINT */
+  @media print{
+    body{background:#fff!important}
+    .no-print{display:none!important}
+    .slide-wrap{border:none!important;box-shadow:none!important}
+    .slide-header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+
+  /* RESPONSIVE */
+  @media(max-width:600px){
+    .grid-2{grid-template-columns:1fr}
+    .col-span-2{grid-column:1}
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- Header -->
+  <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:24px;flex-wrap:wrap" class="no-print">
+    <label class="logo-box" id="box-empresa" title="Clic para subir logo de la empresa">
+      <input type="file" accept="image/*" id="inp-empresa" style="display:none" onchange="loadLogo('empresa',this)"/>
+      <span id="ico-empresa" style="font-size:24px">🏢</span>
+      <span style="font-size:10px;color:#64748b;text-align:center;line-height:1.3;padding:0 6px;margin-top:4px">Logo empresa</span>
+    </label>
+    <label class="logo-box" id="box-conjunto" title="Clic para subir logo del conjunto">
+      <input type="file" accept="image/*" id="inp-conjunto" style="display:none" onchange="loadLogo('conjunto',this)"/>
+      <span id="ico-conjunto" style="font-size:24px">🏘️</span>
+      <span style="font-size:10px;color:#64748b;text-align:center;line-height:1.3;padding:0 6px;margin-top:4px">Logo conjunto</span>
+    </label>
+    <div style="flex:1;min-width:180px;align-self:center">
+      <h1 style="font-size:20px;font-weight:700;color:var(--g800);margin-bottom:4px">Estado del conjunto</h1>
+      <input id="nombre-conjunto" value="Conjunto Residencial" oninput="saveState()"
+        style="font-size:13px;color:#64748b;background:none;border:none;border-bottom:1px dashed var(--g500);padding:0 0 3px;width:100%;outline:none"/>
+      <div style="font-size:11px;color:#94a3b8;margin-top:4px">Haz clic en los cuadros para subir logos</div>
+    </div>
+    <div style="background:var(--g50);border:1px solid var(--g400);border-radius:8px;padding:7px 14px;font-size:13px;color:var(--g700);font-weight:700;align-self:center;white-space:nowrap">
+      <span id="total-equipos">0</span> equipos
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs no-print">
+    <button class="tab-btn active" onclick="setTab('equipos',this)">🔧 Equipos</button>
+    <button class="tab-btn" onclick="setTab('informe',this)">📊 Informe / PDF</button>
+    <button class="tab-btn" onclick="setTab('sync',this)">🔗 Sincronizar Forms</button>
+  </div>
+
+  <!-- TAB EQUIPOS -->
+  <div id="tab-equipos">
+    <div class="search-row">
+      <input type="text" id="search-input" placeholder="Buscar equipo, proveedor o encargado…" oninput="renderList()"/>
+      <button class="btn-primary" onclick="openModal()">+ Agregar equipo</button>
+    </div>
+    <div id="equip-list"></div>
+  </div>
+
+  <!-- TAB INFORME -->
+  <div id="tab-informe" style="display:none">
+    <div class="info-box no-print" style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <div style="font-weight:700;color:var(--g800);font-size:15px;margin-bottom:6px">📄 Guardar como PDF o PNG</div>
+        <div style="font-size:13px;color:#475569;line-height:1.8">
+          <strong>PDF:</strong> Clic en "Guardar como PDF" → elige destino "Guardar como PDF" en el diálogo de impresión<br/>
+          <strong>PNG:</strong> Clic en "Descargar PNG" — se descarga directo
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;align-self:center">
+        <button class="btn-primary" onclick="exportPDF()" style="font-size:14px;padding:10px 20px">🖨️ Guardar como PDF</button>
+        <button onclick="exportPNG()" id="btn-png" style="font-size:14px;padding:10px 20px;font-weight:700;color:var(--g800);border-color:var(--g500)">🖼️ Descargar PNG</button>
+      </div>
+    </div>
+    <div class="tip-box no-print">
+      <span style="font-size:16px">💡</span>
+      <span>El PDF sale en alta calidad con todos los colores. El PNG es ideal para pegar en WhatsApp o correo.</span>
+    </div>
+    <div id="slide-container" class="slide-wrap"><!-- rendered by JS --></div>
+  </div>
+
+  <!-- TAB SYNC -->
+  <div id="tab-sync" style="display:none;max-width:600px">
+    <div class="info-box">
+      <div style="font-weight:700;color:var(--g800);font-size:15px;margin-bottom:10px">📋 Cómo conectar Google Forms</div>
+      <ol style="padding-left:20px;font-size:13px;color:#334155;line-height:2.2">
+        <li>Crea un Google Form con los campos del inventario.</li>
+        <li>Las respuestas van automáticamente al Google Sheet vinculado.</li>
+        <li>En el Sheet: <strong>Archivo → Compartir → Publicar en la web</strong></li>
+        <li>Selecciona <strong>Hoja 1</strong> y formato <strong>CSV</strong> → clic en <strong>Publicar</strong>.</li>
+        <li>Copia la URL generada y pégala abajo.</li>
+      </ol>
+    </div>
+    <label class="field-label">URL del Google Sheet publicado como CSV</label>
+    <input type="url" id="sheet-url" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" style="margin-bottom:12px"/>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <button class="btn-primary" onclick="syncSheets()" id="btn-sync">🔄 Sincronizar ahora</button>
+      <span id="sync-msg" style="font-size:13px"></span>
+    </div>
+    <p style="font-size:12px;color:#94a3b8;margin-top:14px">Los datos locales se reemplazarán con los del Sheet. El app también guarda automáticamente en tu navegador.</p>
+  </div>
+</div>
+
+<!-- MODAL AGREGAR/EDITAR -->
+<div class="overlay" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <span id="modal-icon" style="font-size:30px">⚙️</span>
+      <div style="flex:1">
+        <div id="modal-title" style="font-size:17px;font-weight:600;color:var(--g800)">Nuevo equipo</div>
+        <div style="font-size:12px;color:#64748b">Ícono automático según nombre</div>
+      </div>
+      <button onclick="closeModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#64748b;padding:0 4px">×</button>
+    </div>
+    <div class="grid-2">
+      <div class="col-span-2">
+        <label class="field-label">Nombre del equipo *</label>
+        <input id="f-equipo" oninput="updateModalIcon(this.value)" placeholder="Ej: Ascensor Torre A" style="margin-bottom:14px"/>
+      </div>
+      <div>
+        <label class="field-label">Proveedor</label>
+        <input id="f-proveedor" placeholder="Nombre empresa" style="margin-bottom:14px"/>
+      </div>
+      <div>
+        <label class="field-label">Teléfono</label>
+        <input id="f-telefono" type="tel" placeholder="3XX XXX XXXX" style="margin-bottom:14px"/>
+      </div>
+      <div>
+        <label class="field-label">Nombre encargado</label>
+        <input id="f-encargado" placeholder="Nombre completo" style="margin-bottom:14px"/>
+      </div>
+      <div>
+        <label class="field-label">Correo electrónico</label>
+        <input id="f-correo" type="email" placeholder="correo@empresa.com" style="margin-bottom:14px"/>
+      </div>
+      <div>
+        <label class="field-label">Garantía</label>
+        <select id="f-garantia" style="margin-bottom:14px">
+          <option value="si">✅ Sí — En garantía</option>
+          <option value="no">❌ No — Sin garantía</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Frecuencia de mantenimiento</label>
+        <select id="f-frecuencia" style="margin-bottom:14px">
+          <option>Mensual</option><option>Bimestral</option><option>Trimestral</option>
+          <option>Semestral</option><option>Anual</option><option>Según necesidad</option>
+        </select>
+      </div>
+      <div class="col-span-2">
+        <label class="field-label">Capacitación</label>
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <button id="cap-recibida" onclick="setCap('recibida')" style="flex:1;font-weight:700;background:var(--g50);border:2px solid var(--g600);color:var(--g800)">✅ Recibida</button>
+          <button id="cap-pendiente" onclick="setCap('pendiente')" style="flex:1">⏳ Pendiente</button>
+        </div>
+      </div>
+      <div class="col-span-2">
+        <label class="field-label">Observaciones</label>
+        <textarea id="f-observaciones" placeholder="Notas, alertas o información adicional…" style="margin-bottom:14px"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" onclick="saveEquipo()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE -->
+<div class="overlay" id="confirm-del" style="display:none" onclick="if(event.target===this)document.getElementById('confirm-del').style.display='none'">
+  <div class="modal" style="max-width:360px">
+    <div style="font-size:16px;font-weight:600;margin-bottom:8px">¿Eliminar equipo?</div>
+    <div style="font-size:14px;color:#64748b;margin-bottom:20px">Se eliminará <strong id="del-name"></strong> del registro.</div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="document.getElementById('confirm-del').style.display='none'">Cancelar</button>
+      <button class="btn-danger" style="background:var(--red600)!important;color:#fff!important;border-color:var(--red600)!important;font-weight:700" onclick="confirmDelete()">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ─── DATOS ─────────────────────────────────────── */
+const ICON_MAP=[
+  [/ascensor|elevador|lift/i,'🛗'],[/planta|electr|generador|ups/i,'⚡'],
+  [/bomba|agua|hidro/i,'💧'],[/porter|acceso|cancela|torno|barrera/i,'🚪'],
+  [/cámara|camara|cctv|video|vigilancia/i,'📷'],[/gimnasio|gym|ejercicio/i,'🏋️'],
+  [/piscina|alberca|jacuzzi|sauna/i,'🏊'],[/parqueadero|garaje|parking/i,'🚗'],
+  [/citofon|interfon|intercomunicador/i,'📞'],[/gas|caldera/i,'🔥'],
+  [/aire|hvac|ventilaci|climatiz/i,'❄️'],[/alarma|detector|incendio|extintor/i,'🚨'],
+  [/sal[oó]n|bbq|zona com[uú]n/i,'🏠'],[/solar|panel|fotovolt/i,'☀️'],
+  [/red|internet|fibra|router/i,'📡'],[/transformador|subestaci/i,'🔌'],
+  [/jard[ií]n|verde/i,'🌿'],[/juegos|parque infantil/i,'🎡'],[/seguridad/i,'🛡️'],
+];
+function getIcon(n){for(const [r,i] of ICON_MAP)if(r.test(n||''))return i;return '⚙️';}
+
+let STATE={
+  equipos:[],
+  logoEmpresa:null,
+  logoConjunto:null,
+};
+let editId=null;
+let capVal='pendiente';
+let delId=null;
+
+/* ─── PERSISTENCIA ──────────────────────────────── */
+function saveState(){
+  try{
+    const nombre=document.getElementById('nombre-conjunto').value;
+    localStorage.setItem('conjunto_nombre',nombre);
+    localStorage.setItem('conjunto_equipos',JSON.stringify(STATE.equipos));
+    if(STATE.logoEmpresa) localStorage.setItem('conjunto_logoE',STATE.logoEmpresa);
+    if(STATE.logoConjunto) localStorage.setItem('conjunto_logoC',STATE.logoConjunto);
+    updateCounter();
+  }catch(e){}
+}
+function loadState(){
+  try{
+    const nombre=localStorage.getItem('conjunto_nombre');
+    if(nombre) document.getElementById('nombre-conjunto').value=nombre;
+    const eq=localStorage.getItem('conjunto_equipos');
+    if(eq) STATE.equipos=JSON.parse(eq);
+    const le=localStorage.getItem('conjunto_logoE');
+    if(le){STATE.logoEmpresa=le;showLogo('empresa',le);}
+    const lc=localStorage.getItem('conjunto_logoC');
+    if(lc){STATE.logoConjunto=lc;showLogo('conjunto',lc);}
+  }catch(e){}
+}
+
+/* ─── LOGOS ─────────────────────────────────────── */
+function loadLogo(tipo,input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const src=e.target.result;
+    if(tipo==='empresa') STATE.logoEmpresa=src;
+    else STATE.logoConjunto=src;
+    showLogo(tipo,src);
+    saveState();
+  };
+  reader.readAsDataURL(file);
+}
+function showLogo(tipo,src){
+  const box=document.getElementById('box-'+tipo);
+  box.innerHTML=`<img src="${src}" alt="logo"/>`;
+  box.classList.add('has-logo');
+}
+
+/* ─── TABS ──────────────────────────────────────── */
+function setTab(id,btn){
+  ['equipos','informe','sync'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===id?'block':'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(id==='informe') renderSlide();
+}
+
+/* ─── MODAL ─────────────────────────────────────── */
+function openModal(id){
+  editId=id||null;
+  const eq=id?STATE.equipos.find(e=>e.id===id):null;
+  document.getElementById('modal-title').textContent=eq?'Editar equipo':'Nuevo equipo';
+  document.getElementById('f-equipo').value=eq?.equipo||'';
+  document.getElementById('f-proveedor').value=eq?.proveedor||'';
+  document.getElementById('f-telefono').value=eq?.telefono||'';
+  document.getElementById('f-encargado').value=eq?.encargado||'';
+  document.getElementById('f-correo').value=eq?.correo||'';
+  document.getElementById('f-garantia').value=eq?.garantia||'si';
+  document.getElementById('f-frecuencia').value=eq?.frecuencia||'Mensual';
+  document.getElementById('f-observaciones').value=eq?.observaciones||'';
+  setCap(eq?.capacitacion||'pendiente');
+  updateModalIcon(eq?.equipo||'');
+  document.getElementById('modal').style.display='flex';
+}
+function closeModal(){document.getElementById('modal').style.display='none';}
+function updateModalIcon(val){document.getElementById('modal-icon').textContent=getIcon(val);}
+function setCap(val){
+  capVal=val;
+  const r=document.getElementById('cap-recibida');
+  const p=document.getElementById('cap-pendiente');
+  if(val==='recibida'){
+    r.style.cssText='flex:1;font-weight:700;background:var(--g50);border:2px solid var(--g600);color:var(--g800)';
+    p.style.cssText='flex:1;font-weight:400;background:#fff;border:1px solid #cbd5e1;color:#64748b';
+  }else{
+    p.style.cssText='flex:1;font-weight:700;background:var(--amb100);border:2px solid var(--amb600);color:var(--amb600)';
+    r.style.cssText='flex:1;font-weight:400;background:#fff;border:1px solid #cbd5e1;color:#64748b';
+  }
+}
+
+/* ─── CRUD ──────────────────────────────────────── */
+function saveEquipo(){
+  const equipo=document.getElementById('f-equipo').value.trim();
+  if(!equipo)return;
+  const obj={
+    id:editId||Date.now(),
+    equipo,
+    proveedor:document.getElementById('f-proveedor').value.trim(),
+    telefono:document.getElementById('f-telefono').value.trim(),
+    encargado:document.getElementById('f-encargado').value.trim(),
+    correo:document.getElementById('f-correo').value.trim(),
+    garantia:document.getElementById('f-garantia').value,
+    frecuencia:document.getElementById('f-frecuencia').value,
+    observaciones:document.getElementById('f-observaciones').value.trim(),
+    capacitacion:capVal,
+  };
+  if(editId){
+    const i=STATE.equipos.findIndex(e=>e.id===editId);
+    if(i>=0) STATE.equipos[i]=obj;
+  }else{
+    STATE.equipos.push(obj);
+  }
+  closeModal();
+  saveState();
+  renderList();
+}
+
+function askDelete(id){
+  delId=id;
+  const eq=STATE.equipos.find(e=>e.id===id);
+  document.getElementById('del-name').textContent=eq?.equipo||'';
+  document.getElementById('confirm-del').style.display='flex';
+}
+function confirmDelete(){
+  STATE.equipos=STATE.equipos.filter(e=>e.id!==delId);
+  document.getElementById('confirm-del').style.display='none';
+  saveState();
+  renderList();
+}
+
+/* ─── RENDER LIST ───────────────────────────────── */
+function renderList(){
+  const q=(document.getElementById('search-input').value||'').toLowerCase();
+  const list=STATE.equipos.filter(d=>[d.equipo,d.proveedor,d.encargado].join(' ').toLowerCase().includes(q));
+  const el=document.getElementById('equip-list');
+  if(!list.length){
+    el.innerHTML=`<div style="text-align:center;padding:3rem;color:#94a3b8;font-size:14px">${STATE.equipos.length===0?'Sin equipos registrados. Agrega el primero.':'Sin resultados para esta búsqueda.'}</div>`;
+    return;
+  }
+  el.innerHTML=list.map(r=>{
+    const ok=r.garantia==='si';
+    const capOk=r.capacitacion==='recibida';
+    const fields=[['Encargado',r.encargado],['Teléfono',r.telefono],['Correo',r.correo],['Mantenimiento',r.frecuencia]]
+      .filter(([,v])=>v)
+      .map(([k,v])=>`<div><p style="margin:0;font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;font-weight:700">${k}</p><p style="margin:2px 0 0;font-size:13px">${v}</p></div>`).join('');
+    const obs=r.observaciones?`<div style="grid-column:1/-1"><p style="margin:0;font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;font-weight:700">Observaciones</p><p style="margin:2px 0 0;font-size:13px;color:#64748b;font-style:italic">${r.observaciones}</p></div>`:'';
+    return `<div class="card ${ok?'card-left-green':'card-left-red'}">
+      <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+        <span style="font-size:26px;line-height:1.2;flex-shrink:0">${getIcon(r.equipo)}</span>
+        <div style="flex:1;min-width:140px">
+          <p style="margin:0 0 2px;font-weight:700;font-size:15px;color:var(--g800)">${r.equipo}</p>
+          <p style="margin:0;font-size:13px;color:#64748b">${r.proveedor||'Sin proveedor'}</p>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <span class="badge ${ok?'badge-green':'badge-red'}">${ok?'En garantía':'Sin garantía'}</span>
+          <span class="badge ${capOk?'badge-blue':'badge-amber'}">${capOk?'Cap. recibida':'Cap. pendiente'}</span>
+          <button onclick="openModal(${r.id})">✏️ Editar</button>
+          <button class="btn-danger" onclick="askDelete(${r.id})">Eliminar</button>
+        </div>
+      </div>
+      ${fields||obs?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px 20px;margin-top:12px;padding-top:12px;border-top:1px solid #f1f5f9">${fields}${obs}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function updateCounter(){
+  document.getElementById('total-equipos').textContent=STATE.equipos.length;
+}
+
+/* ─── SLIDE HTML ─────────────────────────────────── */
+function renderSlide(){
+  const nombre=document.getElementById('nombre-conjunto').value||'Conjunto Residencial';
+  const data=STATE.equipos;
+  const total=data.length;
+  const enG=data.filter(d=>d.garantia==='si').length;
+  const sinG=data.filter(d=>d.garantia==='no').length;
+  const capP=data.filter(d=>d.capacitacion==='pendiente').length;
+  const hoy=new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'});
+
+  const logoHtml=[STATE.logoEmpresa,STATE.logoConjunto].filter(Boolean)
+    .map(src=>`<img src="${src}" style="height:52px;width:52px;object-fit:contain;border-radius:10px;background:rgba(255,255,255,0.15);padding:4px"/>`).join('');
+
+  const metricCard=(label,val,color)=>{
+    const pct=total>0?Math.round(val/total*100):0;
+    return `<div class="metric-card" style="border:1.5px solid ${color}22">
+      <div style="font-size:36px;font-weight:800;color:${color};line-height:1">${val}</div>
+      <div style="font-size:12px;color:#64748b;margin:4px 0 10px;font-weight:600">${label}</div>
+      <div style="background:#e2e8f0;border-radius:4px;height:8px">
+        <div style="width:${pct}%;height:100%;background:${color};border-radius:4px"></div>
+      </div>
+      <div style="font-size:11px;color:${color};font-weight:700;margin-top:4px">${pct}% del total</div>
+    </div>`;
+  };
+
+  const equipCard=d=>{
+    const ok=d.garantia==='si';
+    const capOk=d.capacitacion==='recibida';
+    const bc=ok?'#15803d':'#dc2626';
+    const bg=ok?'#f0fdf4':'#fff8f8';
+    return `<div class="equip-card" style="background:${bg};border:1.5px solid ${bc}20;border-left:4px solid ${bc}">
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:7px">
+        <span style="font-size:20px;line-height:1;flex-shrink:0">${getIcon(d.equipo)}</span>
+        <div style="min-width:0">
+          <div style="font-size:12px;font-weight:700;color:#1e293b;line-height:1.2;word-break:break-word">${d.equipo}</div>
+          ${d.proveedor?`<div style="font-size:10px;color:#64748b;margin-top:1px">${d.proveedor}</div>`:''}
+        </div>
+      </div>
+      <div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:5px">
+        <span style="background:${ok?'#dcfce7':'#fee2e2'};color:${ok?'#15803d':'#b91c1c'};border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700">${ok?'✓ Garantía':'✗ Sin garantía'}</span>
+        <span style="background:${capOk?'#dbeafe':'#fef3c7'};color:${capOk?'#2563eb':'#d97706'};border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700">${capOk?'✓ Capac.':'⏳ Pendiente'}</span>
+      </div>
+      ${d.frecuencia?`<div style="font-size:10px;color:#94a3b8">🔧 ${d.frecuencia}</div>`:''}
+      ${d.observaciones?`<div style="font-size:10px;color:#64748b;font-style:italic;border-top:1px solid #e2e8f0;padding-top:5px;margin-top:5px;line-height:1.3">${d.observaciones.length>60?d.observaciones.slice(0,60)+'…':d.observaciones}</div>`:''}
+    </div>`;
+  };
+
+  document.getElementById('slide-container').innerHTML=`
+    <div class="slide-header">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div style="display:flex;align-items:center;gap:14px">
+          ${logoHtml}
+          <div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;opacity:.6;text-transform:uppercase;margin-bottom:4px">Estado técnico del conjunto</div>
+            <div style="font-size:22px;font-weight:800;line-height:1.1">${nombre}</div>
+          </div>
+        </div>
+        <div style="text-align:right;opacity:.75">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.07em">Fecha del informe</div>
+          <div style="font-size:14px;font-weight:700;margin-top:2px">${hoy}</div>
+          <div style="font-size:12px;margin-top:6px;background:rgba(255,255,255,0.15);border-radius:20px;padding:2px 12px;display:inline-block">${total} equipo${total!==1?'s':''}</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-body">
+      <div class="metrics-row">
+        ${metricCard('En garantía',enG,'#15803d')}
+        ${metricCard('Sin garantía',sinG,'#dc2626')}
+        ${metricCard('Cap. pendiente',capP,'#d97706')}
+      </div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:10px">Mapa de equipos</div>
+      ${total===0?'<div style="text-align:center;padding:3rem;color:#94a3b8;font-size:14px">Sin equipos registrados.</div>':`<div class="equip-grid">${data.map(equipCard).join('')}</div>`}
+      <div style="display:flex;gap:16px;margin-top:16px;padding-top:12px;border-top:1px solid #e2e8f0;flex-wrap:wrap">
+        ${[['#15803d','En garantía'],['#dc2626','Sin garantía'],['#2563eb','Cap. recibida'],['#d97706','Cap. pendiente']].map(([c,l])=>`<div style="display:flex;align-items:center;gap:5px"><div style="width:9px;height:9px;border-radius:2px;background:${c}"></div><span style="font-size:10px;color:#64748b">${l}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span style="font-size:11px;color:#64748b">Sistema de Gestión — Propiedad Horizontal</span>
+      <span style="font-size:11px;color:#64748b">Informe de recepción y estado técnico</span>
+    </div>`;
+}
+
+/* ─── EXPORT PDF ─────────────────────────────────── */
+function exportPDF(){
+  renderSlide();
+  document.querySelectorAll('.no-print').forEach(el=>el.style.display='none');
+  window.print();
+  setTimeout(()=>document.querySelectorAll('.no-print').forEach(el=>el.style.display=''),800);
+}
+
+/* ─── EXPORT PNG (canvas) ────────────────────────── */
+function exportPNG(){
+  const btn=document.getElementById('btn-png');
+  btn.textContent='⏳ Generando…';btn.disabled=true;
+  renderSlide();
+  setTimeout(()=>{
+    const slide=document.getElementById('slide-container');
+    if(!window.html2canvas){
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      s.onload=()=>doCapture(slide,btn);
+      s.onerror=()=>{alert('Error cargando librería. Usa "Guardar como PDF" en su lugar.');btn.textContent='🖼️ Descargar PNG';btn.disabled=false;};
+      document.head.appendChild(s);
+    }else{doCapture(slide,btn);}
+  },300);
+}
+function doCapture(slide,btn){
+  html2canvas(slide,{scale:2,useCORS:true,backgroundColor:'#f8fafc'}).then(canvas=>{
+    const a=document.createElement('a');
+    a.download=`Estado_${(document.getElementById('nombre-conjunto').value||'Conjunto').replace(/\s+/g,'_')}.png`;
+    a.href=canvas.toDataURL('image/png');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    btn.textContent='🖼️ Descargar PNG';btn.disabled=false;
+  }).catch(e=>{alert('Error: '+e.message);btn.textContent='🖼️ Descargar PNG';btn.disabled=false;});
+}
+
+/* ─── SYNC GOOGLE SHEETS ─────────────────────────── */
+async function syncSheets(){
+  const url=document.getElementById('sheet-url').value.trim();
+  const msg=document.getElementById('sync-msg');
+  const btn=document.getElementById('btn-sync');
+  if(!url){msg.textContent='⚠️ Pega la URL del Sheet primero.';msg.style.color='var(--amb600)';return;}
+  btn.textContent='⏳ Sincronizando…';btn.disabled=true;msg.textContent='';
+  try{
+    const res=await fetch(url);
+    if(!res.ok) throw new Error('No se pudo acceder. Verifica que esté publicado como CSV.');
+    const text=await res.text();
+    const rows=parseCSV(text);
+    if(!rows.length) throw new Error('Sin filas válidas. Verifica los encabezados.');
+    STATE.equipos=rows;
+    saveState();renderList();
+    msg.textContent=`✅ ${rows.length} equipo${rows.length!==1?'s':''} importados.`;
+    msg.style.color='var(--g700)';
+  }catch(e){msg.textContent='❌ '+e.message;msg.style.color='var(--red600)';}
+  btn.textContent='🔄 Sincronizar ahora';btn.disabled=false;
+}
+
+function parseCSV(text){
+  const lines=text.trim().split('\n');
+  if(lines.length<2)return[];
+  const headers=lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,'').toLowerCase());
+  return lines.slice(1).map((line,idx)=>{
+    const vals=[];let cur='',inQ=false;
+    for(const c of line){if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){vals.push(cur);cur='';}else cur+=c;}
+    vals.push(cur);
+    const clean=vals.map(v=>v.trim().replace(/^"|"$/g,''));
+    const row={};headers.forEach((h,i)=>{row[h]=clean[i]||'';});
+    const g=v=>/^s[ií]/i.test(v)?'si':'no';
+    const c=v=>/recibid/i.test(v)?'recibida':'pendiente';
+    const get=(...keys)=>{for(const k of keys)if(row[k])return row[k];return '';};
+    return{
+      id:Date.now()+idx,
+      equipo:get('equipo','nombre del equipo','nombre equipo'),
+      proveedor:get('proveedor'),
+      telefono:get('teléfono','telefono','número de teléfono','numero de telefono'),
+      encargado:get('nombre encargado','encargado','nombre del encargado'),
+      correo:get('correo electrónico','correo electronico','correo','email'),
+      garantia:g(get('garantía','garantia')),
+      frecuencia:get('frecuencia de mantenimiento','frecuencia','frecuencia mantenimiento')||'Mensual',
+      observaciones:get('observaciones'),
+      capacitacion:c(get('capacitación','capacitacion')),
+    };
+  }).filter(r=>r.equipo);
+}
+
+/* ─── INIT ───────────────────────────────────────── */
+loadState();
+renderList();
+updateCounter();
+</script>
+</body>
+</html>
